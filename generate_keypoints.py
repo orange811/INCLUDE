@@ -61,8 +61,19 @@ def swap_hands(left_wrist, right_wrist, hand, input_hand):
 
     return False
 
-
 def process_video(path, save_dir):
+    # Existing code up to defining uid and label
+    label = path.split("/")[-2]
+    label = "".join([i for i in label if i.isalpha()]).lower()
+    uid = os.path.splitext(os.path.basename(path))[0]
+    uid = "_".join([label, uid])
+    save_path = os.path.join(save_dir, f"{uid}.json")
+
+    # Check if file already exists
+    if os.path.isfile(save_path):
+        print(f"File {save_path} already exists.")
+        return  # Skip processing or use 'continue' if inside a loop
+    
     hands = mp.solutions.hands.Hands(
         min_detection_confidence=0.5, min_tracking_confidence=0.5
     )
@@ -74,10 +85,6 @@ def process_video(path, save_dir):
     hand1_points_x, hand1_points_y = [], []
     hand2_points_x, hand2_points_y = [], []
 
-    label = path.split("/")[-2]
-    label = "".join([i for i in label if i.isalpha()]).lower()
-    uid = os.path.splitext(os.path.basename(path))[0]
-    uid = "_".join([label, uid])
     n_frames = 0
     if not os.path.isfile(path):
         warnings.warn(path + " file not found")
@@ -153,7 +160,7 @@ def process_video(path, save_dir):
         "hand2_y": hand2_points_y,
         "n_frames": n_frames,
     }
-    with open(os.path.join(save_dir, f"{uid}.json"), "w") as f:
+    with open(save_path, "w") as f:
         json.dump(save_data, f)
 
     hands.close()
@@ -181,15 +188,18 @@ def load_train_test_val_paths(args):
     return train_paths, val_paths, test_paths
 
 
-def save_keypoints(dataset, file_paths, mode):
+def save_keypoints(dataset, file_paths, mode, batch_size=10):
     save_dir = os.path.join(args.save_dir, f"{dataset}_{mode}_keypoints")
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
-    Parallel(n_jobs=n_cores, backend="multiprocessing")(
-        delayed(process_video)(path, save_dir)
-        for path in tqdm(file_paths, desc=f"processing {mode} videos")
-    )
+    for i in range(0, len(file_paths), batch_size):
+        batch_paths = file_paths[i:i + batch_size]
+        Parallel(n_jobs=10, backend="multiprocessing")(
+            delayed(process_video)(path, save_dir)
+            for path in tqdm(batch_paths, desc=f"Processing {mode} videos - Batch {i//batch_size + 1}")
+        )
+        gc.collect()  # Clear memory after each batch
 
 
 if __name__ == "__main__":
