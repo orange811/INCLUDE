@@ -1,2 +1,8 @@
 .DS_Store
 __pycache__/
+keypoints_dir/
+.git/
+
+*.pth
+
+

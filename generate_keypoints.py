@@ -11,6 +11,7 @@ import numpy as np
 import gc
 import warnings
 
+
 def process_landmarks(landmarks):
     x_list, y_list = [], []
     for landmark in landmarks.landmark:
@@ -36,7 +37,11 @@ def process_hand_keypoints(results):
 
 def process_pose_keypoints(results):
     pose = results.pose_landmarks
+    if pose is None:
+        return [np.nan] * 25, [np.nan] * 25  # Return NaNs for x and y coordinates
     pose_x, pose_y = process_landmarks(pose)
+    pose_x = pose_x[:25]  # Keep only pose landmarks up to index 24
+    pose_y = pose_y[:25]
     return pose_x, pose_y
 
 
@@ -62,7 +67,7 @@ def process_video(path, save_dir):
         min_detection_confidence=0.5, min_tracking_confidence=0.5
     )
     pose = mp.solutions.pose.Pose(
-        min_detection_confidence=0.5, min_tracking_confidence=0.5, upper_body_only=True
+        min_detection_confidence=0.5, min_tracking_confidence=0.5
     )
 
     pose_points_x, pose_points_y = [], []
@@ -185,6 +190,7 @@ def save_keypoints(dataset, file_paths, mode):
         delayed(process_video)(path, save_dir)
         for path in tqdm(file_paths, desc=f"processing {mode} videos")
     )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate keypoints from Mediapipe")

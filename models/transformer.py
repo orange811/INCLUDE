@@ -40,7 +40,7 @@ class Transformer(nn.Module):
         self.embedding = PositionEmbedding(config)
         self.layers = nn.ModuleList(
             [
-                transformers.BertLayer(config.model_config)
+                transformers.models.bert.modeling_bert.BertLayer(config.model_config)
                 for _ in range(config.num_hidden_layers)
             ]
         )
