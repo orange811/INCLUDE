@@ -139,7 +139,8 @@ def inference(dataloader, model, device, label_map):
 if __name__ == "__main__":
     video_paths = glob.glob(os.path.join(args.data_dir, "*"))
     save_dir = "keypoints_dir"
-    already_processed_videos = True
+    # SET THIS TO TRUE IF VIDEOS ARE ALREADY PREPROCESSED WITH MEDIAPIPE. WILL SAVE AT LEAST 5 MINS
+    already_processed_videos = False
     if not already_processed_videos:
         if os.path.isdir(save_dir):
             shutil.rmtree(save_dir)
@@ -177,4 +178,7 @@ if __name__ == "__main__":
     model.load_state_dict(ckpt["model"])
     print("### Model loaded ###")
     preds = inference(dataloader, model, device, label_map)
-    print(json.dumps(preds, indent=2))
+    output_file = "predictions.json"
+    with open(output_file, "w") as f:
+        json.dump(preds, f, indent=2)
+    print(f"### Predictions saved to {output_file} ###")
