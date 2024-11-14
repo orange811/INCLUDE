@@ -276,6 +276,7 @@ def evaluate(args):
         if args.use_cnn:
             config.input_size = CnnConfig.output_dim
         model = LSTM(config=config, n_classes=n_classes)
+        # print("### LSTM Model ###")
     else:
         config = TransformerConfig(size=args.transformer_size)
         if args.use_cnn:

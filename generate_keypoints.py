@@ -166,7 +166,7 @@ def process_video(path, save_dir):
     hands.close()
     pose.close()
     del hands, pose, save_data
-    gc.collect()
+    # gc.collect()
 
 
 def load_file(path, include_dir):
